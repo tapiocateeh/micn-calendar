@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MICN Calendar — View Only</title>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <style>
+        :root {
+            --bg:#eef1f6; --surface:#ffffff; --border:#dde3ec;
+            --text:#1a2535; --text-muted:#64748b;
+            --open-text: rgba(185,28,28,0.7);
+        }
+        *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+        html, body { height:100%; overflow:hidden; font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); -webkit-tap-highlight-color:transparent; }
+
+        /* TOP BAR */
+        .topbar { height:54px; background:linear-gradient(135deg,#0d1b2a 0%,#1b3a4b 100%); color:#fff; display:flex; align-items:center; padding:0 14px; gap:10px; box-shadow:0 2px 12px rgba(0,0,0,.22); position:relative; z-index:200; flex-shrink:0; }
+        .bar-brand { display:flex; align-items:center; gap:10px; flex:1; min-width:0; }
+        .bar-logo { width:36px; height:36px; flex-shrink:0; background:linear-gradient(135deg,#dc2626,#b91c1c); border-radius:9px; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(220,38,38,.4); }
+        .bar-title { font-size:1.06rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .bar-title .hi { color:#4cc9f0; }
+        .bar-sub { font-size:.67rem; opacity:.5; letter-spacing:.8px; text-transform:uppercase; }
+        .bar-date { font-size:.78rem; opacity:.55; white-space:nowrap; flex-shrink:0; display:none; }
+        @media (min-width:640px) { .bar-date { display:block; } }
+        .ro-badge { font-size:.65rem; font-weight:700; letter-spacing:.8px; text-transform:uppercase; background:rgba(76,201,240,.18); color:#4cc9f0; border:1px solid rgba(76,201,240,.3); padding:3px 9px; border-radius:20px; flex-shrink:0; }
+
+        /* LAYOUT */
+        .layout { display:flex; height:calc(100vh - 54px); overflow:hidden; }
+        .cal-wrap { flex:1; min-width:0; padding:14px; overflow:hidden; }
+        @media (max-width:640px) { .cal-wrap { padding:8px; } }
+        #calendar { height:100%; }
+
+        /* FULLCALENDAR */
+        .fc { font-family:'Inter',sans-serif !important; }
+        .fc .fc-toolbar { margin-bottom:10px !important; flex-wrap:wrap; gap:6px; }
+        .fc .fc-toolbar-title { font-size:1.14rem !important; font-weight:600 !important; color:var(--text) !important; }
+        .fc .fc-button { font-family:'Inter',sans-serif !important; font-size:.84rem !important; font-weight:500 !important; padding:6px 11px !important; border-radius:6px !important; border:none !important; transition:background .14s !important; min-height:34px; }
+        .fc .fc-button-primary { background:#1b3a4b !important; border-color:#1b3a4b !important; }
+        .fc .fc-button-primary:hover { background:#274c5b !important; }
+        .fc .fc-button-primary:not(:disabled).fc-button-active { background:#0d1b2a !important; box-shadow:inset 0 2px 4px rgba(0,0,0,.25) !important; }
+        .fc .fc-button-primary:focus { box-shadow:0 0 0 3px rgba(76,201,240,.3) !important; }
+        .fc .fc-col-header-cell { background:var(--surface) !important; border-bottom:2px solid var(--border) !important; }
+        .fc .fc-col-header-cell-cushion { padding:7px 4px !important; font-size:.82rem !important; font-weight:600 !important; color:var(--text-muted) !important; text-decoration:none !important; }
+        .fc .fc-col-header-cell.fc-day-today .fc-col-header-cell-cushion { color:#0ea5e9 !important; }
+        .fc .fc-timegrid-slot-label { font-size:.69rem !important; color:#94a3b8 !important; }
+        @media (min-width:768px) {
+            .fc .fc-toolbar-title { font-size:.98rem !important; }
+            .fc .fc-button { font-size:.78rem !important; padding:4px 9px !important; min-height:28px !important; }
+            .ev-name { font-size:.78rem !important; }
+            .ev-badge { font-size:.61rem !important; }
+        }
+        .fc .fc-day-today { background:rgba(76,201,240,.04) !important; }
+        .fc .fc-scrollgrid { border-radius:10px !important; overflow:hidden !important; border-color:var(--border) !important; box-shadow:0 1px 6px rgba(0,0,0,.07) !important; }
+        .fc td, .fc th { border-color:var(--border) !important; }
+        .fc .fc-timegrid-now-indicator-line { border-color:#ef4444 !important; border-width:2px !important; }
+        .fc .fc-timegrid-now-indicator-arrow { border-top-color:#ef4444 !important; }
+        .fc .fc-daygrid-event, .fc .fc-timegrid-event { border-radius:6px !important; border:none !important; cursor:default !important; overflow:hidden; }
+
+        /* OPEN block */
+        .fc-event.open-shift-block { border-radius:6px !important; cursor:default !important; box-shadow:none !important; }
+
+        /* Day summary (month view) */
+        .fc-event.day-summary-event { background:transparent !important; border:none !important; box-shadow:none !important; cursor:pointer !important; padding:0 !important; }
+        .fc-event.day-summary-event:hover { filter:none !important; transform:none !important; }
+        .cov-bar { display:flex; gap:2px; padding:2px 3px 1px; }
+        .cov-seg { flex:1; height:7px; border-radius:2px; }
+        @media (max-width:640px) { .cov-seg { height:5px; } .cov-name { font-size:.64rem; } }
+        .cov-name { font-size:.72rem; font-weight:500; color:var(--text-muted); padding:0 4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.5; }
+
+        /* Event card */
+        .ev-card { padding:2px 6px; height:100%; display:flex; flex-direction:row; align-items:center; overflow:hidden; min-height:0; gap:4px; }
+        .ev-dot { width:6px; height:6px; border-radius:50%; flex-shrink:0; }
+        .ev-name { font-size:.87rem; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; line-height:1.3; flex:1; }
+        .ev-name.struck { text-decoration:line-through; opacity:.65; }
+        .ev-badge { font-size:.66rem; font-weight:700; padding:1px 5px; border-radius:8px; background:rgba(255,255,255,.22); color:inherit; letter-spacing:.3px; text-transform:uppercase; white-space:nowrap; flex-shrink:0; }
+        .ev-open { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px; }
+        .ev-open-lbl { font-size:.75rem; font-weight:800; letter-spacing:1.4px; text-transform:uppercase; color:var(--open-text); }
+    </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+    <div class="bar-brand">
+        <div class="bar-logo">
+            <svg viewBox="0 0 24 18" width="22" height="16" fill="none">
+                <rect x="0" y="2" width="16" height="13" rx="2" fill="white"/>
+                <path d="M16 7 L16 15 L23 15 L23 10.5 L20.5 7 Z" fill="white"/>
+                <path d="M17 7.5 L17 10 L22 10 L20.5 7.5 Z" fill="#fca5a5"/>
+                <rect x="5.5" y="6" width="2" height="6" rx=".6" fill="#dc2626"/>
+                <rect x="3.5" y="8" width="6" height="2" rx=".6" fill="#dc2626"/>
+                <circle cx="5" cy="15.2" r="2.2" fill="#dc2626"/>
+                <circle cx="5" cy="15.2" r="1" fill="white"/>
+                <circle cx="18.5" cy="15.2" r="2.2" fill="#dc2626"/>
+                <circle cx="18.5" cy="15.2" r="1" fill="white"/>
+            </svg>
+        </div>
+        <div>
+            <div class="bar-title">MICN <span class="hi">Calendar</span></div>
+            <div class="bar-sub">Mobile Intensive Care Nurse</div>
+        </div>
+    </div>
+    <div class="bar-date" id="barDate"></div>
+    <div class="ro-badge">View Only</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="layout">
+    <div class="cal-wrap">
+        <div id="calendar"></div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const isMobile = () => window.innerWidth < 768;
+
+    document.getElementById('barDate').textContent = new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+
+    const COLORS = {
+        '12hr-day': { bg:'#0ea5e9', bd:'#0284c7', tx:'#fff' },
+        '12hr-noc': { bg:'#1e3a5f', bd:'#172d4a', tx:'#bfdbfe' },
+        '8hr':      { bg:'#0d9488', bd:'#0b7a6e', tx:'#fff' },
+        '4hr':      { bg:'#38bdf8', bd:'#0ea5e9', tx:'#fff' },
+        'custom':   { bg:'#6366f1', bd:'#4f46e5', tx:'#fff' },
+    };
+    const fallback = COLORS['custom'];
+    const STATUS_DOT = { scheduled:'#f59e0b', confirmed:'#10b981', cancelled:'#ef4444', completed:'#94a3b8' };
+    const TYPE_LBL   = { '12hr-day':'12H Day', '12hr-noc':'12H Night', '8hr':'8H', '4hr':'4H', 'custom':'Custom' };
+
+    const cal = new FullCalendar.Calendar(document.getElementById('calendar'), {
+        initialView: isMobile() ? 'timeGridDay' : 'dayGridMonth',
+        headerToolbar: { left:'prev,next today', center:'title', right:'dayGridMonth,timeGridWeek,timeGridDay' },
+        slotMinTime: '07:00:00', slotMaxTime: '31:00:00', scrollTime: '07:00:00',
+        slotDuration: '01:00:00', expandRows: true, nowIndicator: true,
+        lazyFetching: false,
+        editable: false, selectable: false,
+        dayMaxEvents: true, views: { dayGridMonth: { dayMaxEvents: false } },
+        weekends: true,
+
+        events: function (info, ok, fail) {
+            fetch(`api.php?action=list&start=${info.startStr}&end=${info.endStr}`)
+                .then(r => r.json())
+                .then(data => {
+                    const rangeDays = (info.end - info.start) / 86400000;
+                    const isMonth   = rangeDays > 14;
+                    const out = [];
+                    const fixDT = s => s ? s.replace(' ', 'T') : s;
+
+                    if (isMonth) {
+                        const BLOCK_HOURS = [3, 7, 11, 15, 19, 23];
+                        const dayData = {};
+                        data.forEach(ev => {
+                            const p = ev.extendedProps || {};
+                            const start = fixDT(ev.start), end = fixDT(ev.end);
+                            const day = start.substring(0, 10);
+                            if (!dayData[day]) dayData[day] = { openSet: new Set(), nurses: [] };
+                            if (p.is_open) {
+                                dayData[day].openSet.add(parseInt(start.substring(11, 13)));
+                            } else if (p.nurse_name) {
+                                const sh = start.substring(11, 16).replace(':00','');
+                                const eh = end ? end.substring(11, 16).replace(':00','') : '';
+                                const key = p.nurse_name + sh;
+                                if (!dayData[day].nurses.find(n => n.key === key))
+                                    dayData[day].nurses.push({ key, name: p.nurse_name, start: sh, end: eh, is_peds: !!p.is_peds });
+                            }
+                        });
+                        Object.entries(dayData).forEach(([day, d]) => {
+                            out.push({ id: 'summary-' + day, title: '', start: day, allDay: true,
+                                backgroundColor: 'transparent', borderColor: 'transparent',
+                                classNames: ['day-summary-event'], editable: false,
+                                extendedProps: { is_day_summary: true,
+                                    openBlocks: BLOCK_HOURS.map(h => d.openSet.has(h)), nurses: d.nurses } });
+                        });
+                    } else {
+                        data.forEach(ev => {
+                            const p = ev.extendedProps || {};
+                            const start = fixDT(ev.start), end = fixDT(ev.end);
+                            if (p.is_open) {
+                                out.push({ ...ev, start, end, backgroundColor:'rgba(255,242,242,0.85)', borderColor:'transparent', textColor:'rgba(185,28,28,0.7)', classNames:['open-shift-block'], editable:false });
+                            } else {
+                                const c = COLORS[p.shift_type] || fallback;
+                                out.push({ ...ev, start, end, backgroundColor:c.bg, borderColor:c.bd, textColor:c.tx });
+                            }
+                        });
+                    }
+                    ok(out);
+                }).catch(fail);
+        },
+
+        eventDidMount: function (arg) {
+            if (arg.event.extendedProps.is_day_summary) {
+                arg.el.style.cursor = 'pointer';
+                arg.el.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    cal.changeView('timeGridDay', arg.event.startStr);
+                });
+                return;
+            }
+            if (arg.event.extendedProps.is_open) {
+                const el = arg.el;
+                el.style.setProperty('background','repeating-linear-gradient(-45deg,rgba(239,68,68,0.07),rgba(239,68,68,0.07) 5px,rgba(255,242,242,0.85) 5px,rgba(255,242,242,0.85) 15px)','important');
+                el.style.setProperty('border','1.5px dashed rgba(239,68,68,0.45)','important');
+                el.style.setProperty('box-shadow','none','important');
+            }
+        },
+
+        eventClick: function (info) {
+            if (info.event.extendedProps.is_day_summary) {
+                cal.changeView('timeGridDay', info.event.startStr);
+            }
+        },
+
+        eventContent: function (arg) {
+            const p = arg.event.extendedProps;
+            if (p.is_day_summary) {
+                const segs = (p.openBlocks || []).map(isOpen =>
+                    `<div class="cov-seg" style="background:${isOpen ? 'rgba(239,68,68,0.55)' : 'rgba(16,185,129,0.65)'}"></div>`).join('');
+                const MAX = window.innerWidth < 640 ? 3 : 6;
+                const visible = p.nurses ? p.nurses.slice(0, MAX) : [];
+                const overflow = p.nurses ? p.nurses.length - MAX : 0;
+                const names = visible.length
+                    ? visible.map(n => `<div class="cov-name" style="padding:0 4px"><span style="opacity:.55;margin-right:4px;font-variant-numeric:tabular-nums">${n.start}-${n.end}</span>${n.name}${n.is_peds ? '<span style="color:#0ea5e9;font-size:.6rem;margin-left:3px;font-weight:600">(Peds)</span>' : ''}</div>`).join('')
+                      + (overflow > 0 ? `<div class="cov-name" style="opacity:.5;padding:0 4px">+${overflow} more</div>` : '') : '';
+                return { html: `<div><div class="cov-bar">${segs}</div>${names}</div>` };
+            }
+            if (p.is_open) {
+                return { html: `<div class="ev-open"><div class="ev-open-lbl">OPEN</div></div>` };
+            }
+            const name = p.nurse_name || arg.event.title || 'Unassigned';
+            const type = p.shift_type || 'custom', status = p.status || 'scheduled';
+            const dot = STATUS_DOT[status] || '#f59e0b', lbl = TYPE_LBL[type] || type;
+            const struck = status === 'cancelled';
+            const isMonth = cal.view.type === 'dayGridMonth' || cal.view.type === 'dayGrid';
+            return { html: `<div class="ev-card"><div class="ev-dot" style="background:${dot}"></div><div class="ev-name${struck ? ' struck' : ''}">${name}</div>${isMonth ? '' : `<div class="ev-badge">${lbl}</div>`}</div>` };
+        }
+    });
+
+    cal.render();
+});
+</script>
+</body>
+</html>
