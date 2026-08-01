@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://192.168.0.244/micn/api.php?action=list)",
+      "Bash(curl -s \"http://192.168.0.244/micn/api.php?action=list\")",
+      "Bash(docker exec *)",
+      "Bash(python3 -m json.tool)",
+      "Bash(git init *)",
+      "Bash(git config *)",
+      "Bash(git --git-dir=/data/compose/3/www/micn/.git --work-tree=/data/compose/3/www/micn config user.email \"micn@localhost\")",
+      "Bash(git --git-dir=/data/compose/3/www/micn/.git --work-tree=/data/compose/3/www/micn config user.name \"MICN Calendar\")"
+    ]
+  }
+}
